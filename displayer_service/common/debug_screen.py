@@ -16,14 +16,14 @@ FONT_PATH = "fonts/Mono.ttf"
 FONT_SIZE = 20
 
 
-def transform_logs_to_image(logs_path: str) -> ImageType:
+def transform_logs_to_image(logs_path: str, size: tuple[int, int]) -> ImageType:
     """Returns a PIL Image of the debug screen.
 
     Writes the most recent few logs to an in-memory PIL image with readable font
     style and size.
     """
     # Create a blank white image
-    debug_screen_img = Image.new('RGB', (600, 448), 'white')
+    debug_screen_img = Image.new('RGB', size, 'white')
     draw = ImageDraw.Draw(debug_screen_img)
     font = ImageFont.truetype(FONT_PATH, FONT_SIZE)
 
