@@ -6,23 +6,12 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 #===========================================================================
-#                            Configuring rclone.
-#===========================================================================
-echo "Configuring RClone."
-
-# Installing RClone.
-sudo -v ; curl https://rclone.org/install.sh | sudo bash
-sudo apt install -y fuse3 python-pip
-
-# Setting up RClone's connection to Google Photos.
-rclone config
-
-#===========================================================================
 #                            Setting up dependencies
 #===========================================================================
 echo "Installing dependencies."
-
-sudo pip install -r displayer_service/requirements.txt
+python3 -m venv ~/.virtualenv/inkmemories
+source ~/.virtualenvs/inkmemories/bin/activate
+pip install -r requirements.txt
 
 # Inky throws an error, 'libopenblas.so.0: cannot open shared object file: No such file or directory'.
 # Installing this fixes it.

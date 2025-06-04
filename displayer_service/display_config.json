@@ -2,7 +2,8 @@
     "display": {
         "refresh_period_secs": 3600,
         "allowed_image_extensions": [".jpg", ".jpeg", ".png", ".heic"],
-        "image_source_dir": "/home/pi/Pictures/InkMemories"
+        "image_source_dir": "/home/pi/Pictures/InkMemories",
+        "screenshot_dir": "/home/pi/homeassistant_screenshots"
     },
     "logging": {
         "log_file_path": ".ink-memories-log"

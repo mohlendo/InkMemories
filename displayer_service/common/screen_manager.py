@@ -24,7 +24,10 @@ PATH = os.path.dirname(__file__)
 DISPLAY_CONFIG_FILE_PATH = './display_config.json'
 INITIAL_QUEUE_SIZE = 10
 LOG_FILE_PATH = './.ink-memories-log'
-
+SCREENSHOTS = [
+  "dashboard_0.png",
+  "dashboard_1.png"
+]
 
 class ScreenManager:
     """Manages displaying new images to the e-ink display.
@@ -51,6 +54,9 @@ class ScreenManager:
     # The user can enter debugging mode by pressing the 'B' button.
     # Debugging mode can be exited via a force image refresh ('A' button).
     is_debugging = False
+    is_google_photos = False
+    is_screenshots = True
+    last_screenshot_idx = None
 
     def __init__(self):
         with self.screen_lock:
@@ -153,9 +159,10 @@ class ScreenManager:
                 self.logger.info(
                     "Debugging mode is ON. Skipping image refresh."
                 )
-            else:
+            else if self.is_google_photos:
                 self.output_and_queue_image()
-
+            else if self.is_screenshots:
+                self.show_screenshot()
             self.logger.info("Waiting for %s seconds.",
                              image_refresh_period_secs)
             time.sleep(image_refresh_period_secs)
@@ -188,7 +195,7 @@ class ScreenManager:
             next_image = self.image_queue.get()
 
         # Create a copy of the image to prevent mutating the original
-        # Otherwise, image metadata may get lost in drawing. 
+        # Otherwise, image metadata may get lost in drawing.
         img_copy = next_image.copy()
         img_copy  = self.resize_image(img_copy)
         img_copy = image_processor.burn_date_into_image(img_copy)
@@ -201,15 +208,33 @@ class ScreenManager:
         enqueue_thread = threading.Thread(target=self.queue_image)
         enqueue_thread.start()
 
+    def show_screenshot(self):
+        """Displays the next homeassistent screenshot."""
+        if self.last_screenshot_idx is None or self.last_screenshot_idx is len(SCREENSHOTS) - 1:
+            screenshot_idx = 0
+        else:
+            screenshot_idx = self.last_screenshot_idx++
+
+        image_path = os.path.join(self.display_config.config['display']['screenshot_dir'], SCREENSHOTS[screenshot_idx])
+
+        if not os.path.exists(image_path):
+            self.logger.error(f"Image file not found: {image_path}. Skipping display.")
+            return
+        img = Image.open(image_path)
+        img = self.resize_image(img)
+        with self.screen_lock:
+            self.show_image(img_copy)
+
     def resize_image(self, img):
         """
         Preprocess the image by cropping and resizing if needed.
         """
+        if img.size == self.eink_display.resolution:
+            return img
         # Pre-process the image.
         width, height = self.eink_display.resolution
         img = image_processor.central_crop(img,  width / height)
         img = img.resize(self.eink_display.resolution)
-
         self.logger.info("Finished preprocessing image.")
         return img
 
@@ -254,21 +279,30 @@ class ScreenManager:
         """
         label = self.pins_to_buttons[pressed_pin]
         if label == 'A':
-            self.logger.info("User pressed A. Forcing refresh image.")
+            self.logger.info("User pressed A. Showing homeassistent screenshots.")
             if self.screen_lock.locked():
                 self.logger.info(
                     "Skipping image refresh because refresh is already underway.")
                 return
             self.is_debugging = False
-            self.output_and_queue_image()
+            self.is_screenshots = True
+            self.is_google_photos = False
+            self.show_screenshot()
         elif label == 'B':
+            self.logger.info("User pressed B. Forcing refresh image of google photos.")
+            if self.screen_lock.locked():
+                self.logger.info(
+                    "Skipping image refresh because refresh is already underway.")
+                return
+            self.is_debugging = False
+            self.is_screenshots = False
+            self.is_google_photos = True
+            self.output_and_queue_image()
+        elif label == 'C':
             self.is_debugging = True
             self.logger.info(
-                "User pressed B. " + ("Entering debugging mode." if self.is_debugging else "Refreshing debugger."))
+                "User pressed C. " + ("Entering debugging mode." if self.is_debugging else "Refreshing debugger."))
             self.push_debugger_update()
-        elif label == 'C':
-            self.logger.info(
-                "User pressed C. Nothing is implemented for this button.")
         elif label == 'D':
             self.logger.info("User pressed D. Shutting down the Pi.")
 
