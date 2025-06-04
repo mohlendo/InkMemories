@@ -213,9 +213,9 @@ class ScreenManager:
         if self.last_screenshot_idx is None or self.last_screenshot_idx is len(SCREENSHOTS) - 1:
             screenshot_idx = 0
         else:
-            screenshot_idx = self.last_screenshot_idx++
+            self.last_screenshot_idx += 1
 
-        image_path = os.path.join(self.display_config.config['display']['screenshot_dir'], SCREENSHOTS[screenshot_idx])
+        image_path = os.path.join(self.display_config.config['display']['screenshot_dir'], SCREENSHOTS[self.last_screenshot_idx])
 
         if not os.path.exists(image_path):
             self.logger.error(f"Image file not found: {image_path}. Skipping display.")
