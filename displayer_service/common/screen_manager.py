@@ -210,7 +210,7 @@ class ScreenManager:
 
     def show_screenshot(self):
         """Displays the next homeassistent screenshot."""
-        if self.last_screenshot_idx is None or self.last_screenshot_idx is len(SCREENSHOTS) - 1:
+        if self.last_screenshot_idx is None or self.last_screenshot_idx == len(SCREENSHOTS) - 1:
             screenshot_idx = 0
         else:
             self.last_screenshot_idx += 1
