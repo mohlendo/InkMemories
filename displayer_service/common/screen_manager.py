@@ -56,7 +56,7 @@ class ScreenManager:
     is_debugging = False
     is_google_photos = False
     is_screenshots = True
-    last_screenshot_idx = None
+    last_screenshot_idx = -1
 
     def __init__(self):
         with self.screen_lock:
@@ -210,7 +210,7 @@ class ScreenManager:
 
     def show_screenshot(self):
         """Displays the next homeassistent screenshot."""
-        if self.last_screenshot_idx is None or self.last_screenshot_idx == len(SCREENSHOTS) - 1:
+        if self.last_screenshot_idx == -1 or self.last_screenshot_idx == len(SCREENSHOTS) - 1:
             screenshot_idx = 0
         else:
             self.last_screenshot_idx += 1
