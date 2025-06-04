@@ -1,0 +1,13 @@
+[Unit]
+Description=Ink Memories Image Screenshot
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+WorkingDirectory=/home/pi/InkMemories
+ExecStart=/home/pi/.virtualenvs/inkmemories/bin/python screenshot_service/screenshot_service.py
+
+Environment=PLAYWRIGHT_BROWSERS_PATH="/home/pi/.cache/ms-playwright"
+
+[Install]
+WantedBy=multi-user.target

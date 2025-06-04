@@ -1,11 +1,11 @@
 [Unit]
 Description=Ink Memories Image Displayer
-After=ink-memories-image-source.service
-Requires=ink-memories-image-source.service
+After=ink-memories-screenshot.service
+Requires=ink-memories-screenshot.service
 
 [Service]
 WorkingDirectory={{INK_MEMORIES_ROOT}}/displayer_service
-ExecStart=sudo /home/pi/.virtualenvs/inkmemories/bin/python python app.py
+ExecStart=sudo /home/pi/.virtualenvs/inkmemories/bin/python app.py
 
 [Install]
 WantedBy=multi-user.target
