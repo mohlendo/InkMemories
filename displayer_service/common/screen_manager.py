@@ -159,9 +159,9 @@ class ScreenManager:
                 self.logger.info(
                     "Debugging mode is ON. Skipping image refresh."
                 )
-            else if self.is_google_photos:
+            elif self.is_google_photos:
                 self.output_and_queue_image()
-            else if self.is_screenshots:
+            elif self.is_screenshots:
                 self.show_screenshot()
             self.logger.info("Waiting for %s seconds.",
                              image_refresh_period_secs)

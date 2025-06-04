@@ -5,7 +5,7 @@ Requires=ink-memories-image-source.service
 
 [Service]
 WorkingDirectory={{INK_MEMORIES_ROOT}}/displayer_service
-ExecStart=sudo python app.py
+ExecStart=sudo /home/pi/.virtualenvs/inkmemories/bin/python python app.py
 
 [Install]
 WantedBy=multi-user.target
