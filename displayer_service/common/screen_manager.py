@@ -220,10 +220,12 @@ class ScreenManager:
         if not os.path.exists(image_path):
             self.logger.error(f"Image file not found: {image_path}. Skipping display.")
             return
+
+        self.logger.info(f"Showing screenshot: {image_path}")
         img = Image.open(image_path)
         img = self.resize_image(img)
         with self.screen_lock:
-            self.show_image(img_copy)
+            self.show_image(img)
 
     def resize_image(self, img):
         """
