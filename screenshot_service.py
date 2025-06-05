@@ -19,7 +19,7 @@ async def capture_dashboards(logger: Logger, display_config: DisplayConfig):
         page = await context.new_page()
 
         # Create a directory for screenshots
-        screenshot_dir = pathlib.Path("homeassistant_screenshots")
+        screenshot_dir = display_config.config['display']['screenshot_dir']
         screenshot_dir.mkdir(parents=True, exist_ok=True)
 
         # List of dashboard URLs to capture
