@@ -3,7 +3,9 @@
         "refresh_period_secs": 3600,
         "allowed_image_extensions": [".jpg", ".jpeg", ".png", ".heic"],
         "image_source_dir": "/home/pi/pictures",
-        "screenshot_dir": "/home/pi/homeassistant_screenshots"
+        "screenshot_dir": "/home/pi/homeassistant_screenshots",
+        "screenshot_urls": ["http://some.screenshot.url.0", "http://some.screenshot.url.1"],
+        "google_photos_album": "http://some.google.album"
     },
     "logging": {
         "log_file_path": ".ink-memories-log"

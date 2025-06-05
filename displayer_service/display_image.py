@@ -2,10 +2,11 @@
 
 import os
 import sys
+
 from PIL import Image
 from inky.auto import auto
-from common import image_processor
 
+import image_processor
 
 PATH = os.path.dirname(__file__)
 

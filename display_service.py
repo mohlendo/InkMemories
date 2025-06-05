@@ -1,11 +1,11 @@
-import common.screen_manager
+from displayer_service import screen_manager
 import logging
 import threading
 
 
 if __name__ == "__main__":
     # Initialise the ScreenManager.
-    display = common.screen_manager.ScreenManager()
+    display = screen_manager.ScreenManager()
 
     # Create a thread for the regularly refreshing the image.
     # Note: daemon threads automatically terminate when the program does.

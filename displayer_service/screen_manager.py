@@ -1,45 +1,35 @@
 #!/usr/bin/python3
 
-import os
 import logging
-import time
-import sys
-import traceback
-import threading
+import os
 import queue
-
-from RPi import GPIO
+import sys
+import threading
+import time
+import traceback
 from logging import Logger
+
 from PIL import Image
+from RPi import GPIO
 from inky.auto import auto
-from pathlib import Path
-from typing import Union
 
-from common import image_processor, debug_screen
+import debug_screen
+import image_processor
 from common.display_config import DisplayConfig
-from common.image_retriever import ImageRetriever
-
+from image_retriever import ImageRetriever
 
 PATH = os.path.dirname(__file__)
 DISPLAY_CONFIG_FILE_PATH = './display_config.json'
 INITIAL_QUEUE_SIZE = 10
 LOG_FILE_PATH = './.ink-memories-log'
-SCREENSHOTS = [
-  "dashboard_0.png",
-  "dashboard_1.png"
-]
+
 
 class ScreenManager:
     """Manages displaying new images to the e-ink display.
     """
     logger: Logger
     display_config: DisplayConfig
-    pins_to_buttons = {
-        5: 'A',
-        6: 'B',
-        16: 'C',
-        24: 'D'
-    }
+    pins_to_buttons = {5: 'A', 6: 'B', 16: 'C', 24: 'D'}
 
     # Protects multi-threaded access to the screen.
     screen_lock = threading.Lock()
@@ -68,20 +58,17 @@ class ScreenManager:
             self.initialise_eink_display()
             self.initialise_pi()
 
-            self.image_retriever = ImageRetriever(
-                self.logger, self.display_config)
+            self.image_retriever = ImageRetriever(self.logger, self.display_config)
 
             # Populate the image buffer with some intiial images.
             # Keep trying until it is populated.
             chosen_images = None
             while chosen_images is None:
                 try:
-                    chosen_images = self.image_retriever.get_random_images(
-                        INITIAL_QUEUE_SIZE)
+                    chosen_images = self.image_retriever.get_random_images(INITIAL_QUEUE_SIZE)
                 except Exception as e:
                     self.logger.error(e)
-                    self.logger.info(
-                        "Initial population of images has failed. Trying again in 300 seconds.")
+                    self.logger.info("Initial population of images has failed. Trying again in 300 seconds.")
                     time.sleep(300)
 
             for img in chosen_images:
@@ -92,8 +79,7 @@ class ScreenManager:
         try:
             self.eink_display = auto(ask_user=True, verbose=True)
         except TypeError:
-            self.logger.critical(
-                "You need to update the Inky library to >= v1.1.0")
+            self.logger.critical("You need to update the Inky library to >= v1.1.0")
             sys.exit(1)
 
         self.eink_display.set_border(self.eink_display.WHITE)
@@ -104,8 +90,7 @@ class ScreenManager:
 
         Expects that the display config has already been populated.
         """
-        formatter = logging.Formatter(
-            '[%(asctime)s] %(message)s', datefmt="%Y-%m-%d %H:%M")
+        formatter = logging.Formatter('[%(asctime)s] %(message)s', datefmt="%Y-%m-%d %H:%M")
         file_handler = logging.FileHandler(LOG_FILE_PATH)
         file_handler.setFormatter(formatter)
 
@@ -122,17 +107,15 @@ class ScreenManager:
 
         # Custom exception hook to log unhandled exceptions.
         def custom_exception_hook(exc_type, exc_value, exc_traceback):
-            traceback.print_exception(
-                exc_type, exc_value, exc_traceback, file=sys.stdout)
-            self.logger.exception("Uncaught exception", exc_info=(
-                exc_type, exc_value, exc_traceback))
+            traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
+            self.logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
             sys.exit(1)
+
         sys.excepthook = custom_exception_hook
 
     def initialise_display_config(self):
         """Initialises the display config."""
-        self.display_config = DisplayConfig(
-            self.logger, DISPLAY_CONFIG_FILE_PATH)
+        self.display_config = DisplayConfig(self.logger, DISPLAY_CONFIG_FILE_PATH)
 
     def initialise_pi(self):
         """Initialises the Pi's hardware settings."""
@@ -142,12 +125,10 @@ class ScreenManager:
 
         # Buttons connect to ground when pressed, so we should set them up
         # with a "PULL UP", which weakly pulls the input signal to 3.3V.
-        GPIO.setup(list(self.pins_to_buttons.keys()),
-                   GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(list(self.pins_to_buttons.keys()), GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
         for each_pin_num in self.pins_to_buttons.keys():
-            GPIO.add_event_detect(each_pin_num, GPIO.FALLING,
-                                  self.handle_button_press, bouncetime=250)
+            GPIO.add_event_detect(each_pin_num, GPIO.FALLING, self.handle_button_press, bouncetime=250)
 
     def refresh_in_background(self) -> None:
         """Periodically displays a new image."""
@@ -156,15 +137,12 @@ class ScreenManager:
             self.logger.info("Automatic image refresh requested.")
 
             if self.is_debugging:
-                self.logger.info(
-                    "Debugging mode is ON. Skipping image refresh."
-                )
+                self.logger.info("Debugging mode is ON. Skipping image refresh.")
             elif self.is_google_photos:
                 self.output_and_queue_image()
             elif self.is_screenshots:
                 self.show_screenshot()
-            self.logger.info("Waiting for %s seconds.",
-                             image_refresh_period_secs)
+            self.logger.info("Waiting for %s seconds.", image_refresh_period_secs)
             time.sleep(image_refresh_period_secs)
 
     def queue_image(self):
@@ -173,8 +151,7 @@ class ScreenManager:
             self.image_queue.put(self.image_retriever.get_random_image())
         except Exception as e:
             self.logger.error(e)
-            self.logger.info(
-                "Failed to queue image. Size of queue: %s", self.image_queue.qsize())
+            self.logger.info("Failed to queue image. Size of queue: %s", self.image_queue.qsize())
 
     def output_and_queue_image(self):
         """Displays the next image in the image queue, and adds a new image to the queue."""
@@ -183,12 +160,10 @@ class ScreenManager:
         try:
             next_image = self.image_queue.get()
         except queue.Empty:
-            self.logger.error(
-                "Tried to set the next image, but queue was empty.")
+            self.logger.error("Tried to set the next image, but queue was empty.")
 
             self.logger.info("Repopulating the image buffer.")
-            chosen_images = self.image_retriever.get_random_images(
-                INITIAL_QUEUE_SIZE)
+            chosen_images = self.image_retriever.get_random_images(INITIAL_QUEUE_SIZE)
             for img in chosen_images:
                 self.image_queue.put(img)
 
@@ -197,7 +172,7 @@ class ScreenManager:
         # Create a copy of the image to prevent mutating the original
         # Otherwise, image metadata may get lost in drawing.
         img_copy = next_image.copy()
-        img_copy  = self.resize_image(img_copy)
+        img_copy = self.resize_image(img_copy)
         img_copy = image_processor.burn_date_into_image(img_copy)
 
         with self.screen_lock:
@@ -210,12 +185,14 @@ class ScreenManager:
 
     def show_screenshot(self):
         """Displays the next homeassistent screenshot."""
-        if self.last_screenshot_idx is None or self.last_screenshot_idx == len(SCREENSHOTS) - 1:
+        screenshot_urls = self.display_config.config['display']['screenshot_urls']
+        if self.last_screenshot_idx is None or self.last_screenshot_idx == len(screenshot_urls) - 1:
             self.last_screenshot_idx = 0
         else:
             self.last_screenshot_idx += 1
 
-        image_path = os.path.join(self.display_config.config['display']['screenshot_dir'], SCREENSHOTS[self.last_screenshot_idx])
+        image_path = os.path.join(self.display_config.config['display']['screenshot_dir'],
+                                  f"screenshot_{self.last_screenshot_idx}.png")
 
         if not os.path.exists(image_path):
             self.logger.error(f"Image file not found: {image_path}. Skipping display.")
@@ -235,14 +212,14 @@ class ScreenManager:
             return img
         # Pre-process the image.
         width, height = self.eink_display.resolution
-        img = image_processor.central_crop(img,  width / height)
+        img = image_processor.central_crop(img, width / height)
         img = img.resize(self.eink_display.resolution)
         self.logger.info("Finished preprocessing image.")
         return img
 
     def show_image(self, img):
         """Sets a new random image chosen from the images source.
-        """        
+        """
         # Writing the image to the screen.
         self.eink_display.set_image(img)
         self.eink_display.show()
@@ -259,15 +236,13 @@ class ScreenManager:
         refreshes.
         """
         if self.screen_lock.locked():
-            self.logger.info(
-                "Attempted to enter debug mode while screen was busy. Skipping.")
+            self.logger.info("Attempted to enter debug mode while screen was busy. Skipping.")
             return
 
         with self.screen_lock:
             # Ensure the image fits into the eink display's resolution.
             debug_screen_img = debug_screen.transform_logs_to_image(LOG_FILE_PATH, self.eink_display.resolution)
-            debug_screen_img = debug_screen_img.resize(
-                self.eink_display.resolution)
+            debug_screen_img = debug_screen_img.resize(self.eink_display.resolution)
             self.show_image(debug_screen_img)
 
     def handle_button_press(self, pressed_pin):
@@ -283,8 +258,7 @@ class ScreenManager:
         if label == 'A':
             self.logger.info("User pressed A. Showing homeassistent screenshots.")
             if self.screen_lock.locked():
-                self.logger.info(
-                    "Skipping image refresh because refresh is already underway.")
+                self.logger.info("Skipping image refresh because refresh is already underway.")
                 return
             self.is_debugging = False
             self.is_screenshots = True
@@ -293,8 +267,7 @@ class ScreenManager:
         elif label == 'B':
             self.logger.info("User pressed B. Forcing refresh image of google photos.")
             if self.screen_lock.locked():
-                self.logger.info(
-                    "Skipping image refresh because refresh is already underway.")
+                self.logger.info("Skipping image refresh because refresh is already underway.")
                 return
             self.is_debugging = False
             self.is_screenshots = False
@@ -321,7 +294,6 @@ class ScreenManager:
         """
         self.logger.info("Shutting down!")
         if os.geteuid() != 0:
-            self.logger.error(
-                "Failed to shut down because this process is not executing with root privileges.")
+            self.logger.error("Failed to shut down because this process is not executing with root privileges.")
         else:
             os.system('systemctl poweroff')

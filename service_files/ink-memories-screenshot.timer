@@ -1,0 +1,11 @@
+[Unit]
+Description=Runs the ink-memories screenshot service periodically
+
+[Timer]
+OnBootSec=1m
+OnUnitActiveSec=15m
+RandomizedDelaySec=60s
+Unit=%i.service
+
+[Install]
+WantedBy=timers.target

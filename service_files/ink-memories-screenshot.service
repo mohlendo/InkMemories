@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-WorkingDirectory=/home/pi/InkMemories
+WorkingDirectory={{INK_MEMORIES_ROOT}}
 ExecStart=/home/pi/.virtualenvs/inkmemories/bin/python screenshot_service/screenshot_service.py
 
 Environment=PLAYWRIGHT_BROWSERS_PATH="/home/pi/.cache/ms-playwright"
