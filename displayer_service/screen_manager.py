@@ -13,8 +13,8 @@ from PIL import Image
 from RPi import GPIO
 from inky.auto import auto
 
-import debug_screen
-import image_processor
+from displayer_service import debug_screen
+from displayer_service import image_processor
 from common.display_config import DisplayConfig
 from image_retriever import ImageRetriever
 
