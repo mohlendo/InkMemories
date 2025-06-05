@@ -16,7 +16,7 @@ from inky.auto import auto
 from displayer_service import debug_screen
 from displayer_service import image_processor
 from common.display_config import DisplayConfig
-from image_retriever import ImageRetriever
+from displayer_service.image_retriever import ImageRetriever
 
 PATH = os.path.dirname(__file__)
 DISPLAY_CONFIG_FILE_PATH = './display_config.json'
