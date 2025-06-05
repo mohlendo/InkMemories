@@ -21,8 +21,6 @@ from image_retriever import ImageRetriever
 PATH = os.path.dirname(__file__)
 DISPLAY_CONFIG_FILE_PATH = './display_config.json'
 INITIAL_QUEUE_SIZE = 10
-LOG_FILE_PATH = './.ink-memories-log'
-
 
 class ScreenManager:
     """Manages displaying new images to the e-ink display.
@@ -51,10 +49,9 @@ class ScreenManager:
     def __init__(self):
         with self.screen_lock:
             self.logger = logging.getLogger(__name__)
-            self.initialise_display_config()
-            # TODO: make this self.display_config = self.configure_logger().
-            self.configure_logger()
+            logging.basicConfig(level=logging.DEBUG)
 
+            self.display_config = DisplayConfig(self.logger, DISPLAY_CONFIG_FILE_PATH)
             self.initialise_eink_display()
             self.initialise_pi()
 
@@ -84,38 +81,6 @@ class ScreenManager:
 
         self.eink_display.set_border(self.eink_display.WHITE)
         self.logger.info("Initialised the eInk display.")
-
-    def configure_logger(self):
-        """Creates a custom (non-root) logger.
-
-        Expects that the display config has already been populated.
-        """
-        formatter = logging.Formatter('[%(asctime)s] %(message)s', datefmt="%Y-%m-%d %H:%M")
-        file_handler = logging.FileHandler(LOG_FILE_PATH)
-        file_handler.setFormatter(formatter)
-
-        self.logger.addHandler(file_handler)
-        self.logger.info('Initialised custom logger.')
-
-        # Tees the log output to stdout.
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.DEBUG)
-        stream_handler.setFormatter(formatter)
-        root_logger = logging.getLogger()
-        root_logger.setLevel(logging.INFO)
-        root_logger.addHandler(stream_handler)
-
-        # Custom exception hook to log unhandled exceptions.
-        def custom_exception_hook(exc_type, exc_value, exc_traceback):
-            traceback.print_exception(exc_type, exc_value, exc_traceback, file=sys.stdout)
-            self.logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-            sys.exit(1)
-
-        sys.excepthook = custom_exception_hook
-
-    def initialise_display_config(self):
-        """Initialises the display config."""
-        self.display_config = DisplayConfig(self.logger, DISPLAY_CONFIG_FILE_PATH)
 
     def initialise_pi(self):
         """Initialises the Pi's hardware settings."""
@@ -262,6 +227,7 @@ class ScreenManager:
                 return
             self.is_debugging = False
             self.is_screenshots = True
+            self.last_screenshot_idx = None
             self.is_google_photos = False
             self.show_screenshot()
         elif label == 'B':
