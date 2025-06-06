@@ -6,6 +6,7 @@ from logging import Logger
 from common.display_config import DisplayConfig
 
 DISPLAY_CONFIG_FILE_PATH = './display_config.json'
+ZOOM_FACTOR = 1.2
 
 async def capture_dashboards(logger: Logger, display_config: DisplayConfig):
     async with async_playwright() as playwright:
@@ -35,6 +36,7 @@ async def capture_dashboards(logger: Logger, display_config: DisplayConfig):
 
                 logger.info(f"Waiting for <hui-card> on {url}...")
                 await page.wait_for_selector("hui-card", state="visible", timeout=240000) # Waits for the element to be in the DOM
+                await page.evaluate(f"document.body.style.zoom = '{ZOOM_FACTOR}'")
                 await page.wait_for_timeout(1000) # Give it an extra second to truly settle
                 await page.screenshot(path=screenshot_path, full_page=False)
                 logger.info(f"Screenshot saved: {screenshot_path}")
